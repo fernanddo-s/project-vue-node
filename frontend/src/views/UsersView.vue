@@ -1,11 +1,17 @@
 <script setup>
 import axios from "axios";
-import { reactive, onMounted } from "vue";
+import { reactive } from "vue";
 
 const state = reactive({
   id: 0,
   edit: false,
   user: {
+    nome: '',
+    email: '',
+    telefone: '',
+    idade: 0,
+  },
+  userEdit: {
     nome: '',
     email: '',
     telefone: '',
@@ -84,12 +90,34 @@ async function deleteUser(id) {
   }
 }
 
-function openDialog() {
-  if (state.edit) {
-    updateUser(state.id)
+function openDialog(user) {
+  if (user == null) {
+    state.user = {
+      nome: '',
+      email: '',
+      telefone: '',
+      idade: 0,
+    }
+  } else {
+    state.userEdit = user
   }
   state.dialog = true;
 }
+
+const headers = [
+  { title: "Nome", align: "start", sortable: true, key: "nome" },
+  { title: "E-mail", align: "start", sortable: true, key: "email" },
+  { title: "Telefone", align: "start", sortable: true, key: "telefone" },
+  { title: "Idade", align: "start", sortable: true, key: "idade" },
+  { title: "", sortable: false, key: "id" }
+]
+const itemsPerPageOptions = [
+  { title: "5", value: 5 },
+  { title: "10", value: 10 },
+  { title: "25", value: 25 },
+  { title: "50", value: 50 },
+  { title: "100", value: 100 },
+]
 
 function save() {
   if (state.edit) {
@@ -99,10 +127,6 @@ function save() {
   }
   state.dialog = false
 }
-
-onMounted(() => {
-  getUsers();
-});
 
 </script>
 
@@ -149,38 +173,21 @@ onMounted(() => {
     </v-card-title>
 
     <v-card-text>
-      <v-table>
-        <thead>
+      <v-data-table :items="state.usersList" :items-per-page-options="itemsPerPageOptions" :headers="headers" @update:options="getUsers()">
+        <template v-slot:item="{ item }">
           <tr>
-            <th class="text-left">
-              Nome
-            </th>
-            <th class="text-left">
-              E-mail
-            </th>
-            <th class="text-left">
-              Telefone
-            </th>
-            <th class="text-left">
-              Idade
-            </th>
-            <th class="text-left">
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="item in state.usersList" :key="item.name">
             <td>{{ item.nome }}</td>
             <td>{{ item.email }}</td>
             <td>{{ item.telefone }}</td>
             <td>{{ item.idade }}</td>
             <td>
               <v-btn icon="mdi-pencil" variant="text" color="info"
-                @click="state.edit = true, state.id = item.id, openDialog()"></v-btn>
+                @click="state.edit = true, state.id = item.id, openDialog(item)"></v-btn>
               <v-btn icon="mdi-delete" variant="text" color="error" @click="deleteUser(item.id)"></v-btn>
             </td>
           </tr>
-        </tbody>
-      </v-table>
+        </template>
+      </v-data-table>
     </v-card-text>
-</v-card></template>
+  </v-card>
+</template>
