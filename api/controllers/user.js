@@ -28,7 +28,7 @@ export const addUser = (req, res) => {
 };
 
 export const updateUser = (req, res) => {
-    const q = "UPDATE users SET `nome` = ? `email` = ? `telefone` = ? `idade` = ? WHERE `id` = ?";
+    const q = "UPDATE users SET `nome` = ?, `email` = ?, `telefone` = ?, `idade` = ? WHERE `id` = ?";
 
     const values = [
         req.body.nome,
@@ -41,6 +41,15 @@ export const updateUser = (req, res) => {
         if(err) return res.json(err);
 
         return res.status(200).json("Usuário atualizado com sucesso!");
+    });
+};
+
+export const getUser = (req, res) => {
+    const q = "SELECT * FROM users WHERE `id` = ?";
+    db.query(q, [req.params.id], (err, data) => {
+        if(err) return res.json(err);
+
+        return res.status(200).json(data);
     });
 };
 
