@@ -104,6 +104,16 @@ function openDialog(user) {
   state.dialog = true;
 }
 
+function closeDialog() {
+  state.user = {
+    nome: '',
+    email: '',
+    telefone: '',
+    idade: 0,
+  }
+  state.dialog = false;
+}
+
 const headers = [
   { title: "Nome", align: "start", sortable: true, key: "nome" },
   { title: "E-mail", align: "start", sortable: true, key: "email" },
@@ -165,7 +175,7 @@ function save() {
           </v-card-text>
           <v-card-actions>
             <v-spacer></v-spacer>
-            <v-btn variant="text" @click="state.dialog = false">Cancelar</v-btn>
+            <v-btn variant="text" @click="closeDialog()">Cancelar</v-btn>
             <v-btn variant="tonal" color="blue" @click="save()">Salvar</v-btn>
           </v-card-actions>
         </v-card>
@@ -173,7 +183,8 @@ function save() {
     </v-card-title>
 
     <v-card-text>
-      <v-data-table :items="state.usersList" :items-per-page-options="itemsPerPageOptions" :headers="headers" @update:options="getUsers()">
+      <v-data-table :items="state.usersList" :items-per-page-options="itemsPerPageOptions" :headers="headers"
+        @update:options="getUsers()">
         <template v-slot:item="{ item }">
           <tr>
             <td>{{ item.nome }}</td>
