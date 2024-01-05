@@ -3,6 +3,8 @@ import axios from "axios";
 import { reactive, onMounted } from "vue";
 
 const state = reactive({
+  id: 0,
+  edit: false,
   user: {
     nome: '',
     email: '',
@@ -40,12 +42,7 @@ const getUsers = async () => {
 const addUser = async () => {
   try {
     await axios.post("http://localhost:8800", state.user)
-    console.log(state.user)
-    state.dialog = false;
-    state.user.nome = '';
-    state.user.email = '';
-    state.user.telefone = '';
-    state.user.idade = '';
+    clearForm()
     getUsers();
   }
   catch (error) {
@@ -54,7 +51,6 @@ const addUser = async () => {
 }
 
 function clearForm() {
-  state.dialog = false
   state.user.nome = ''
   state.user.email = ''
   state.user.telefone = ''
@@ -64,16 +60,13 @@ function clearForm() {
 async function updateUser(id) {
   try {
     state.dialog = true
-    const res = await axios.get(`http://localhost:8800/${id}`);
-    state.user.nome = res.data[0].nome
-    state.user.email = res.data[0].email
-    state.user.telefone = res.data[0].telefone
-    state.user.idade = res.data[0].idade
-
-    console.log(state.user)
-    console.log(id)
-    await axios.put(`http://localhost:8800/${id}`, {nome: state.user.nome, email: state.user.email, telefone: state.user.telefone, idade: state.user.idade});
-
+    await axios.put("http://localhost:8800/" + id, {
+      nome: state.user.nome,
+      email: state.user.email,
+      telefone: state.user.telefone,
+      idade: state.user.idade
+    });
+    clearForm();
     getUsers();
   }
   catch (error) {
@@ -91,6 +84,22 @@ async function deleteUser(id) {
   }
 }
 
+function openDialog() {
+  if (state.edit) {
+    updateUser(state.id)
+  }
+  state.dialog = true;
+}
+
+function save() {
+  if (state.edit) {
+    updateUser(state.id);
+  } else {
+    addUser();
+  }
+  state.dialog = false
+}
+
 onMounted(() => {
   getUsers();
 });
@@ -104,7 +113,7 @@ onMounted(() => {
     </v-toolbar>
     <v-card-title>
       <v-btn class="mt-4 mx-2 px-2 py-5 d-flex justify-content align-center" color="primary" elevation="0"
-        @click="state.dialog = true">
+        @click="state.edit = false, openDialog()">
         Adicionar Usuário
       </v-btn>
       <v-dialog v-model="state.dialog" width="70%" persistent="true">
@@ -113,16 +122,17 @@ onMounted(() => {
           <v-card-text>
             <v-row>
               <v-col>
-                <v-text-field label="Nome" variant="outlined" v-model="state.user.nome"></v-text-field>
+                <v-text-field type="text" label="Nome" variant="outlined" v-model="state.user.nome"></v-text-field>
               </v-col>
               <v-col>
-                <v-text-field label="E-mail" variant="outlined" :rules="state.emailRules" placeholder="user@email.com"
-                  v-model="state.user.email"></v-text-field>
+                <v-text-field type="email" label="E-mail" variant="outlined" :rules="state.emailRules"
+                  placeholder="user@email.com" v-model="state.user.email"></v-text-field>
               </v-col>
             </v-row>
             <v-row>
               <v-col>
-                <v-text-field label="Telefone" variant="outlined" v-model="state.user.telefone"></v-text-field>
+                <v-text-field type="text" label="Telefone" variant="outlined"
+                  v-model="state.user.telefone"></v-text-field>
               </v-col>
               <v-col>
                 <v-text-field type="number" label="Idade" variant="outlined" v-model="state.user.idade"></v-text-field>
@@ -131,8 +141,8 @@ onMounted(() => {
           </v-card-text>
           <v-card-actions>
             <v-spacer></v-spacer>
-            <v-btn variant="text" @click="clearForm">Cancelar</v-btn>
-            <v-btn variant="tonal" color="blue" @click="addUser">Salvar</v-btn>
+            <v-btn variant="text" @click="state.dialog = false">Cancelar</v-btn>
+            <v-btn variant="tonal" color="blue" @click="save()">Salvar</v-btn>
           </v-card-actions>
         </v-card>
       </v-dialog>
@@ -165,12 +175,12 @@ onMounted(() => {
             <td>{{ item.telefone }}</td>
             <td>{{ item.idade }}</td>
             <td>
-              <v-btn icon="mdi-pencil" variant="text" color="info" @click="updateUser(item.id)"></v-btn>
+              <v-btn icon="mdi-pencil" variant="text" color="info"
+                @click="state.edit = true, state.id = item.id, openDialog()"></v-btn>
               <v-btn icon="mdi-delete" variant="text" color="error" @click="deleteUser(item.id)"></v-btn>
             </td>
           </tr>
         </tbody>
       </v-table>
     </v-card-text>
-  </v-card>
-</template>
+</v-card></template>
